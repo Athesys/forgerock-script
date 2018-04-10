@@ -33,7 +33,7 @@ import java.util.Map;
 import static org.forgerock.json.resource.ResourceException.FIELD_CODE;
 import static org.forgerock.json.resource.ResourceException.FIELD_DETAIL;
 import static org.forgerock.json.resource.ResourceException.FIELD_MESSAGE;
-import static org.forgerock.json.resource.ResourceException.getException;
+//import static org.forgerock.json.resource.ResourceException.ResourceException.newResourceException;
 
 /**
  * An exception that is thrown to indicate that an executed script encountered
@@ -129,22 +129,23 @@ public class ScriptThrownException extends ScriptException {
                 if (throwable == null) {
                     throwable = this;
                 }
-                return getException(openidmCode.intValue(), message, throwable).setDetail(
+                return ResourceException.newResourceException(openidmCode.intValue(), message, throwable).setDetail(
                         failureDetail);
 
             }
         }
         if (defaultMsg != null) {
-            return getException(defaultCode, defaultMsg, this);
+            return ResourceException.newResourceException(defaultCode, defaultMsg, this);
         } else if (value == null) {
-            return getException(defaultCode, null, this);
+            return ResourceException.newResourceException(defaultCode, null, this);
         } else {
-            return getException(defaultCode, String.valueOf(value), this);
+            return ResourceException.newResourceException(defaultCode, String.valueOf(value), this);
         }
     }
 
     @Override
-    public String toString() {
-        return super.toString() + " " + getValue().toString();
+    public String toString()
+    {
+      return super.toString() + (getValue() != null ? " " + getValue().toString() : null);
     }
 }

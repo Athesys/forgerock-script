@@ -70,6 +70,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+
 /**
  * A ScriptRegistryImpl does ...
  *
@@ -86,19 +87,18 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
 
     private final Set<ScriptEngineFactory> engineFactories;
 
-    private final Map<ScriptEngineFactory, ScriptEngine> engines =
-            new HashMap<ScriptEngineFactory, ScriptEngine>();
+    private final Map<ScriptEngineFactory, ScriptEngine> engines = new HashMap<ScriptEngineFactory, ScriptEngine>();
 
-    private final ConcurrentHashMap<ScriptName, LibraryRecord> cache =
-            new ConcurrentHashMap<ScriptName, LibraryRecord>();
+    private final ConcurrentHashMap<ScriptName, LibraryRecord> cache = new ConcurrentHashMap<ScriptName, LibraryRecord>();
 
-    private final LinkedHashMap<ScriptName, SourceContainer> sourceCache =
-            new LinkedHashMap<ScriptName, SourceContainer>();
+    private final Map<ScriptName, Set<ScriptListener>> pendingScriptListeners = new HashMap<ScriptName, Set<ScriptListener>>();
+
+    private final LinkedHashMap<ScriptName, SourceContainer> sourceCache = new LinkedHashMap<ScriptName, SourceContainer>();
 
     private final ReadWriteLock sourceCacheLock = new ReentrantReadWriteLock();
 
     private Map<String, Object> properties;
-    
+
     private ClassLoader registryLevelScriptClassLoader;
 
     /**
@@ -110,15 +110,14 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
     public ScriptRegistryImpl() {
         this(new HashMap<String, Object>(0), null, null, null);
     }
-    
-    public ScriptRegistryImpl(final Map<String, Object> properties,
-            final Iterable<ScriptEngineFactory> engine, final Bindings globalScope) {
+
+    public ScriptRegistryImpl(final Map<String, Object> properties, final Iterable<ScriptEngineFactory> engine,
+            final Bindings globalScope) {
         this(properties, engine, globalScope, null);
     }
 
-    public ScriptRegistryImpl(final Map<String, Object> properties,
-            final Iterable<ScriptEngineFactory> engine, final Bindings globalScope,
-            final ClassLoader registryLevelScriptClassLoader) {
+    public ScriptRegistryImpl(final Map<String, Object> properties, final Iterable<ScriptEngineFactory> engine,
+            final Bindings globalScope, final ClassLoader registryLevelScriptClassLoader) {
         this.properties = properties;
         this.engineFactories = new HashSet<ScriptEngineFactory>();
         if (null != engine) {
@@ -126,12 +125,11 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
                 engineFactories.add(factory);
             }
         }
-        this.globalScope =
-                globalScope != null ? new AtomicReference<Bindings>(globalScope)
-                        : new AtomicReference<Bindings>();
+        this.globalScope = globalScope != null ? new AtomicReference<Bindings>(globalScope)
+                : new AtomicReference<Bindings>();
 
         this.registryLevelScriptClassLoader = registryLevelScriptClassLoader;
-                
+
         // properties.get(SCRIPT_CACHE_DIR);
     }
 
@@ -207,25 +205,22 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
         JsonValue requestBinding = script.get(SourceUnit.ATTR_REQUEST_BINDING);
 
         if (!source.isNull()
-                && (type.isNull() || type.expect(String.class).asString().equals(
-                        SourceUnit.AUTO_DETECT))) {
+                && (type.isNull() || type.expect(String.class).asString().equals(SourceUnit.AUTO_DETECT))) {
             throw new IllegalArgumentException("Embedded script must have type");
         }
 
-        ScriptName scriptName =
-                new ScriptName(
-                        name.isNull() || !name.isString() ? UUID.randomUUID().toString() : name.asString(),
-                        type.isNull() || !type.isString() ? SourceUnit.AUTO_DETECT : type.asString(),
-                        null,
-                        requestBinding.isNull() || !requestBinding.isString() ? null : requestBinding.asString());
+        ScriptName scriptName = new ScriptName(
+                name.isNull() || !name.isString() ? UUID.randomUUID().toString() : name.asString(),
+                type.isNull() || !type.isString() ? SourceUnit.AUTO_DETECT : type.asString(), null,
+                requestBinding.isNull() || !requestBinding.isString() ? null : requestBinding.asString());
 
         if (!source.isNull()) {
             JsonValue visibility = script.get(SourceUnit.ATTR_VISIBILITY);
             if (visibility.isNull()) {
                 addSourceUnit(new EmbeddedScriptSource(source.asString(), scriptName));
             } else {
-                addSourceUnit(new EmbeddedScriptSource(visibility
-                        .asEnum(ScriptEntry.Visibility.class), source.asString(), scriptName));
+                addSourceUnit(new EmbeddedScriptSource(visibility.asEnum(ScriptEntry.Visibility.class),
+                        source.asString(), scriptName));
             }
         }
         ScriptEntry scriptEntry = takeScript(scriptName);
@@ -235,7 +230,7 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
         }
 
         for (Map.Entry<String, Object> entry : script.asMap().entrySet()) {
-            if (SourceUnit.ATTR_NAME.equals(entry.getKey())
+            /*if (SourceUnit.ATTR_NAME.equals(entry.getKey())
                     || SourceUnit.ATTR_TYPE.equals(entry.getKey())
                     || SourceUnit.ATTR_SOURCE.equals(entry.getKey())
                     || SourceUnit.ATTR_VISIBILITY.equals(entry.getKey())
@@ -243,6 +238,15 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
                 continue;
             }
             scriptEntry.put(entry.getKey(), entry.getValue());
+            */
+            //Readable for human
+            if ((!SourceUnit.ATTR_NAME.equals(entry.getKey())) && (!SourceUnit.ATTR_NAME.equals(entry.getKey()))
+                    && (!SourceUnit.ATTR_SOURCE.equals(entry.getKey()))
+                    && (!SourceUnit.ATTR_VISIBILITY.equals(entry.getKey()))
+                    && (!((String) entry.getKey()).startsWith("_"))) {
+                scriptEntry.put((String) entry.getKey(), entry.getValue());
+            }
+
         }
 
         return scriptEntry;
@@ -300,8 +304,7 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
         configuration.put(Bindings.class.getName(), globalScope);
         sourceCacheLock.readLock().lock();
         try {
-            return factory.getScriptEngine(configuration, sourceCache.values(),
-                    getRegistryLevelScriptClassLoader());
+            return factory.getScriptEngine(configuration, sourceCache.values(), getRegistryLevelScriptClassLoader());
         } finally {
             sourceCacheLock.readLock().unlock();
         }
@@ -417,8 +420,8 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
 
             for (int i = arrLocal.length - 1; i >= 0; i--) {
                 try {
-                    ((ScriptListener) arrLocal[i]).scriptChanged(new ScriptEvent(type,
-                            ScriptRegistryImpl.this, scriptName));
+                    ((ScriptListener) arrLocal[i])
+                            .scriptChanged(new ScriptEvent(type, ScriptRegistryImpl.this, scriptName));
                 } catch (Throwable t) {
                     /* ignore */
                 }
@@ -585,24 +588,35 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
     }
 
     public void addScriptListener(ScriptName name, ScriptListener hook) {
-        if (null != hook && null != name) {
-            LibraryRecord record = cache.get(name);
-            if (null == record) {
-                LibraryRecord newRecord = new LibraryRecord(name);
-                record = cache.putIfAbsent(name, newRecord);
-                if (record == null) {
-                    record = newRecord;
+        if ((null != hook) && (null != name)) {
+            synchronized (this) {
+                LibraryRecord record = cache.get(name);
+                if (null == record) {
+                    Set<ScriptListener> scriptListeners = pendingScriptListeners.get(name);
+                    if (scriptListeners == null) {
+                        scriptListeners = new HashSet<ScriptListener>();
+                        this.pendingScriptListeners.put(name, scriptListeners);
+                    }
+                    scriptListeners.add(hook);
+                } else {
+                    record.addScriptListener(hook);
                 }
             }
-            record.addScriptListener(hook);
         }
     }
 
     public void deleteScriptListener(ScriptName name, ScriptListener hook) {
-        if (null != hook && null != name) {
-            LibraryRecord record = cache.get(name);
-            if (null != record) {
-                record.deleteScriptListener(hook);
+        if ((null != hook) && (null != name)) {
+            synchronized (this) {
+                LibraryRecord record = (LibraryRecord) this.cache.get(name);
+                if (null != record) {
+                    record.deleteScriptListener(hook);
+                } else {
+                    Set<ScriptListener> listeners = pendingScriptListeners.get(name);
+                    if (listeners != null) {
+                        listeners.remove(hook);
+                    }
+                }
             }
         }
     }
@@ -655,20 +669,38 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
     // SourceUnitObserver
     public void addSourceUnit(SourceUnit unit) throws ScriptException {
         try {
-            if (unit instanceof ScriptSource) {
+            if ((unit instanceof ScriptSource)) {
                 // Cheap: avoid the synchronized block
-                LibraryRecord record = new LibraryRecord(unit.getName());
-                LibraryRecord cacheRecord = cache.putIfAbsent(unit.getName(), record);
-                if (null == cacheRecord) {
-                    cacheRecord = record;
+                LibraryRecord cacheRecord = (LibraryRecord) this.cache.get(unit.getName());
+                if (cacheRecord == null) {
+                    cacheRecord = new LibraryRecord(unit.getName());
                 }
-                if (null == cacheRecord.getScriptSource()
-                        || !cacheRecord.getScriptSource().getName().getRevision().equalsIgnoreCase(
-                        unit.getName().getRevision())) {
-                    // Expensive: compile the source
-                    cacheRecord.setScriptSource((ScriptSource) unit);
+                if ((null == cacheRecord.getScriptSource()) || (!cacheRecord.getScriptSource().getName().getRevision()
+                        .equalsIgnoreCase(unit.getName().getRevision()))) {
+                    synchronized (this) {
+                        boolean listenersAdded = false;
+                        Set<ScriptListener> scriptListeners = pendingScriptListeners.remove(unit.getName());
+                        if (scriptListeners != null) {
+                            for (ScriptListener listener : scriptListeners) {
+                                cacheRecord.addScriptListener(listener);
+                                listenersAdded = true;
+                            }
+                        }
+                        try {
+                            // Expensive: compile the source
+                            cacheRecord.setScriptSource((ScriptSource) unit);
+                        } catch (Exception e) {
+                            if (listenersAdded) {
+                                pendingScriptListeners.put(unit.getName(), scriptListeners);
+                            }
+                            throw e;
+                        }
+                        if ((cache.putIfAbsent(unit.getName(), cacheRecord) != null) && (listenersAdded)) {
+                            throw new IllegalStateException("Unexpected that pendingScriptListeners added");
+                        }
+                    }
                 }
-            } else if (unit instanceof SourceContainer) {
+            } else if ((unit instanceof SourceContainer)) {
                 SourceContainer container = (SourceContainer) unit;
 
                 sourceCacheLock.writeLock().lock();
@@ -677,7 +709,6 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
                 } finally {
                     sourceCacheLock.writeLock().unlock();
                 }
-
                 for (LibraryRecord cacheRecord : cache.values()) {
                     if (null == cacheRecord.source) {
                         ScriptSource source = container.findScriptSource(cacheRecord.scriptName);
@@ -689,6 +720,7 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
             }
         } catch (ScriptCompilationException e) {
             // remove from cache if fails compilation
+            SourceContainer container;
             cache.remove(unit.getName());
             throw e;
         }
@@ -726,7 +758,8 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
 
         ScriptImpl(final Context context, final CompiledScript target, ScriptName scriptName) {
             this.target = target;
-            this.context = new ScriptContext(context, scriptName.getName(), scriptName.getType(), scriptName.getRevision());
+            this.context = new ScriptContext(context, scriptName.getName(), scriptName.getType(),
+                    scriptName.getRevision());
         }
 
         public void putSafe(String key, Object value) {
@@ -736,10 +769,10 @@ public class ScriptRegistryImpl implements ScriptRegistry, ScriptEngineFactoryOb
             safeBinding.put(key, value);
         }
 
-        public Object eval(final Bindings bindings) throws ScriptException {
+        public Object eval(Bindings bindings) throws ScriptException {
             try {
-                return target.eval(context, bindings, safeBinding, getServiceBindings(),
-                        getGlobalBindings());
+                return this.target.eval(context, bindings,
+                        new Bindings[] { this.safeBinding, getServiceBindings(), getGlobalBindings() });
             } catch (ScriptException e) {
                 throw e;
             } catch (Throwable t) {

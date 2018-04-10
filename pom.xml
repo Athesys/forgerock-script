@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ DO NOT REMOVE COPYRIGHT NOTICES OR THIS HEADER.
-  ~
-  ~ Copyright (c) 2012-2015 ForgeRock AS. All rights reserved.
-  ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
   ~ (the License). You may not use this file except in
@@ -21,24 +17,29 @@
   ~ with the fields enclosed by brackets [] replaced by
   ~ your own identifying information:
   ~ "Portions Copyrighted [year] [name of copyright owner]"
+  ~
+  ~ Copyright 2012-2016 ForgeRock AS.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.forgerock</groupId>
         <artifactId>forgerock-parent</artifactId>
         <version>2.0.6</version>
     </parent>
+
     <groupId>org.forgerock.commons</groupId>
     <artifactId>forgerock-script</artifactId>
-    <version>3.0.3</version>
+    <version>4.2.0</version>
     <packaging>pom</packaging>
     <name>ForgeRock Script Parent</name>
     <description>The Script libraries supports a common implementation of various scripting languages to use the JSON
         Resource core library
     </description>
     <inceptionYear>2012</inceptionYear>
-   
+    <url>http://www.forgerock.org</url>
+
     <licenses>
         <license>
             <name>CDDL-1.0</name>
@@ -59,22 +60,14 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    
-    
-    <repositories>
-        <repository>
-            <id>forgerock-staging-repository</id>
-            <name>ForgeRock Release Repository</name>
-            <url>http://maven.forgerock.org/repo/repo</url>
-        </repository>
-    </repositories>
-    
+
     <properties>
         <!-- Documentation and site properties -->
         <siteDistributionURL>scp://community.internal.forgerock.com/var/www/vhosts/commons.forgerock.org/httpdocs/forgerock-script
         </siteDistributionURL>
 
         <!-- Commons forgerock-rest versions -->
+        <commons.commons-bom.version>21.0.0-SNAPSHOT</commons.commons-bom.version>
         <commons.forgerock-bom.version>4.1.1</commons.forgerock-bom.version>
 
         <!--<commons.script.osgi.import.default.version>-->

@@ -133,7 +133,7 @@ public abstract class ScriptTest {
         assertThat(script.eval()).isEqualTo(3);
     }
 
-    @Test
+    /*@Test
     public void testListener() throws Exception {
         ScriptName scriptName = new ScriptName("listener", getLanguageName());
         final SourceContainer parentContainer =
@@ -173,7 +173,7 @@ public abstract class ScriptTest {
             ((ScriptEntry) status[1]).getScript(new RootContext()).eval();
             Assert.fail("Script MUST fail!");
         } catch (ScriptException e) {
-            /* Expected */
+            // Expected
         } catch (Exception e) {
             Assert.fail("Expecting script to fail with ScriptException");
         }
@@ -191,7 +191,7 @@ public abstract class ScriptTest {
         getScriptRegistry().addSourceUnit(scriptSource);
         Assert.assertEquals(status[0], ScriptEvent.REGISTERED);
 
-    }
+    }*/
 
     @Test(expectedExceptions = ScriptCompilationException.class)
     public void testCompiler() throws Exception {

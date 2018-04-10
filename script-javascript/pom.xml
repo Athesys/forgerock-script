@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ DO NOT REMOVE COPYRIGHT NOTICES OR THIS HEADER.
-  ~
-  ~ Copyright (c) 2012-2014 ForgeRock AS. All rights reserved.
-  ~
   ~ The contents of this file are subject to the terms
   ~ of the Common Development and Distribution License
   ~ (the License). You may not use this file except in
@@ -21,29 +17,35 @@
   ~ with the fields enclosed by brackets [] replaced by
   ~ your own identifying information:
   ~ "Portions Copyrighted [year] [name of copyright owner]"
+  ~
+  ~ Copyright 2012-2016 ForgeRock AS.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project 
+    xmlns="http://maven.apache.org/POM/4.0.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.forgerock.commons</groupId>
         <artifactId>forgerock-script</artifactId>
-        <version>3.0.3</version>
+        <version>4.2.0</version>
     </parent>
     <artifactId>script-javascript</artifactId>
     <packaging>bundle</packaging>
-
     <name>ForgeRock Script - JavaScript</name>
 
-    <properties>
-    </properties>
-
+    <repositories>
+        <repository>
+            <id>iam-libs</id>
+            <name>iam-libs</name>
+            <url>https://raw.githubusercontent.com/Athesys/iam-libs/master/</url>
+        </repository>
+    </repositories>
     <dependencies>
         <!--
             mvn versions:display-plugin-updates
             mvn versions:display-dependency-updates
             mvn versions:use-latest-versions
         -->
-
         <!-- ForgeRock Commons -->
         <dependency>
             <groupId>org.forgerock.commons</groupId>
@@ -60,7 +62,6 @@
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
-
         <dependency>
             <groupId>org.apache.servicemix.bundles</groupId>
             <artifactId>org.apache.servicemix.bundles.rhino</artifactId>
@@ -79,19 +80,16 @@
             <version>1.0.100.v201109150330</version>
             <optional>true</optional>
         </dependency>
-
         <!-- SLF4J -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-
         <!-- Provided Dependencies -->
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
         </dependency>
-
         <!-- Test Dependencies -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
@@ -99,7 +97,6 @@
             <version>2.1.3</version>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
@@ -108,6 +105,11 @@
         <dependency>
             <groupId>org.easytesting</groupId>
             <artifactId>fest-assert-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -134,7 +136,6 @@
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
     <build>
         <!-- http://svn.apache.org/repos/asf/aries/trunk/spi-fly/spi-fly-dynamic-bundle/pom.xml -->

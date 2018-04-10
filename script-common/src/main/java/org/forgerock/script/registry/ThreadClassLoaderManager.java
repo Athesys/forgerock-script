@@ -43,9 +43,7 @@ public final class ThreadClassLoaderManager {
 
     private final List<ClassLoader> loaderStack = new ArrayList<ClassLoader>();
 
-    private ThreadClassLoaderManager() {
-
-    }
+    private ThreadClassLoaderManager() {}
 
     /**
      * Returns the thread-local instance of the manager.

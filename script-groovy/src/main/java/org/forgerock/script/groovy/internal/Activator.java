@@ -50,18 +50,16 @@ public class Activator implements BundleActivator, ServiceFactory<ScriptEngineFa
      */
     private ServiceRegistration<?> serviceRegistration = null;
 
-    private static final ConcurrentMap<Bundle, ScriptEngineFactory> REGISTRY =
-            new ConcurrentHashMap<Bundle, ScriptEngineFactory>();
+    private static final ConcurrentMap<Bundle, ScriptEngineFactory> REGISTRY = new ConcurrentHashMap<Bundle, ScriptEngineFactory>();
 
     public void start(BundleContext context) throws Exception {
         Dictionary<String, Object> properties = new Hashtable<String, Object>(2);
 
         properties.put(Constants.SERVICE_VENDOR, "ForgeRock AS");
-        properties.put(Constants.SERVICE_DESCRIPTION, "Scripting language support of "
-                + GroovyScriptEngineFactory.LANGUAGE_NAME);
+        properties.put(Constants.SERVICE_DESCRIPTION,
+                "Scripting language support of " + GroovyScriptEngineFactory.LANGUAGE_NAME);
 
-        serviceRegistration =
-                context.registerService(ScriptEngineFactory.class.getName(), this, properties);
+        serviceRegistration = context.registerService(ScriptEngineFactory.class.getName(), this, properties);
 
     }
 
@@ -72,8 +70,7 @@ public class Activator implements BundleActivator, ServiceFactory<ScriptEngineFa
         }
     }
 
-    public ScriptEngineFactory getService(Bundle bundle,
-            ServiceRegistration<ScriptEngineFactory> registration) {
+    public ScriptEngineFactory getService(Bundle bundle, ServiceRegistration<ScriptEngineFactory> registration) {
         ScriptEngineFactory factory = new GroovyScriptEngineFactory();
         ScriptEngineFactory result = REGISTRY.putIfAbsent(bundle, factory);
         if (null == result) {

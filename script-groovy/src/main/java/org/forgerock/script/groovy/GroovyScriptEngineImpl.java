@@ -99,13 +99,11 @@ public class GroovyScriptEngineImpl extends AbstractScriptEngine {
                 properties.put(entry.getKey(), entry.getValue());
             }
         }
-        final CompilerConfiguration config =
-                null != properties ? new CompilerConfiguration(properties)
-                        : new CompilerConfiguration();
+        final CompilerConfiguration config = null != properties ? new CompilerConfiguration(properties)
+                : new CompilerConfiguration();
 
         config.addCompilationCustomizers(GroovyScriptEngineImpl
-                .getImportCustomizer((ImportCustomizer) configuration.get(ImportCustomizer.class
-                        .getCanonicalName())));
+                .getImportCustomizer((ImportCustomizer) configuration.get(ImportCustomizer.class.getCanonicalName())));
 
         Object jointCompilationOptions = configuration.get("jointCompilationOptions");
         if (jointCompilationOptions instanceof Map) {
@@ -114,8 +112,7 @@ public class GroovyScriptEngineImpl extends AbstractScriptEngine {
         this.loader = new GroovyClassLoader(getParentLoader(), config, true);
         groovyScriptEngine = new GroovyScriptEngine(new ResourceConnector() {
             @Override
-            public URLConnection getResourceConnection(String resourceName)
-                    throws ResourceException {
+            public URLConnection getResourceConnection(String resourceName) throws ResourceException {
                 URL source = sourceCache.get(resourceName);
                 if (null != source) {
                     try {
@@ -152,8 +149,7 @@ public class GroovyScriptEngineImpl extends AbstractScriptEngine {
      * @throws groovy.util.ScriptException
      *             if there is a problem parsing the script
      */
-    Script createScript(String scriptName, Binding binding) throws ResourceException,
-            groovy.util.ScriptException {
+    Script createScript(String scriptName, Binding binding) throws ResourceException, groovy.util.ScriptException {
 
         Class clazz = scriptCache.get(scriptName);
         if (clazz == null) {
@@ -192,12 +188,9 @@ public class GroovyScriptEngineImpl extends AbstractScriptEngine {
 
             if (null == codeSource) {
                 // TODO write to cache file
-                codeSource =
-                        new GroovyCodeSource(handler.getScriptSource().getReader(), handler
-                                .getScriptSource().getName().getName(), handler.getScriptSource()
-                                .getName().getName());
-                scriptCache.put(codeSource.getName(), groovyScriptEngine.getGroovyClassLoader()
-                        .parseClass(codeSource));
+                codeSource = new GroovyCodeSource(handler.getScriptSource().getReader(),
+                        handler.getScriptSource().getName().getName(), handler.getScriptSource().getName().getName());
+                scriptCache.put(codeSource.getName(), groovyScriptEngine.getGroovyClassLoader().parseClass(codeSource));
             } else {
                 groovyScriptEngine.getGroovyClassLoader().parseClass(codeSource);
             }
